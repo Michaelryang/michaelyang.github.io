@@ -55,6 +55,10 @@ const siteConfig: SiteConfig = {
             href: '/projects'
         },
         {
+            text: 'Blog',
+            href: '/blog'
+        },
+        {
             text: 'Tags',
             href: '/tags'
         }
