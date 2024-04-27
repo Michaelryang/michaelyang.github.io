@@ -1,6 +1,8 @@
 ---
 title: First Post
 publishDate: 'April 27, 2024'
+tags:
+  - Raytracing
 seo:
   image:
     src: '/'
