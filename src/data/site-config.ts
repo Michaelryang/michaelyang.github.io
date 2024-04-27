@@ -80,7 +80,7 @@ const siteConfig: SiteConfig = {
         }
     ],
     hero: {
-        title: 'Welcome to my portfolio.',
+        title: '',
         text: "I'm **Michael Yang**, a game developer at Heavy Iron Studios. In this website you'll find some of my favorite projects and things that I'm working on. I enjoy exploring a variety of techniques and concepts in game development, and some of the more interesting problems and challenges I encounter will be detailed here. Thanks for stopping by!",
         image: {
             src: '/michael_canyon.jpg',
