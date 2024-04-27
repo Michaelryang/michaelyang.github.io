@@ -1,6 +1,6 @@
 ---
 title: 'First Project'
-description: First project
+description: 'First post: raytracing'
 publishDate: 'April 27, 2024'
 tags:
   - Raytracing

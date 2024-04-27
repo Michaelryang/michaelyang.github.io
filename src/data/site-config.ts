@@ -42,8 +42,8 @@ const siteConfig: SiteConfig = {
     subtitle: 'Personal Website and Portfolio',
     description: '',
     image: {
-        src: '/dante-preview.jpg',
-        alt: 'Dante - Astro.js and Tailwind CSS theme'
+        src: '/michael_canyon.jpg',
+        alt: 'Picture of me at the canyon'
     },
     headerNavLinks: [
         {
