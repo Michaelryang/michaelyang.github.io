@@ -32,11 +32,7 @@ function preloadTheme() {
   const theme = (() => {
     const userTheme = localStorage.theme
 
-    if (userTheme === "light" || userTheme === "dark") {
-      return userTheme
-    } else {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-    }
+    return "dark"
   })()
 
   const element = document.documentElement
