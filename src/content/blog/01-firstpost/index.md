@@ -9,7 +9,7 @@ tags:
 
 The projects section will hold a more concise presentation of the things that I've worked on, and serve as the best way to see what I've made. However, I think it is also important to keep track of the journey/process in some way. Any interesting challenges that I encounter, or just things behind the scenes that I think are worth sharing, might be put into a post like this one. In addition, some vague updates on what I'm currently learning about may be posted here.
 
-![DirectX 12](/src/content/blog/01-firstpost/directx12.jpg)
+![DirectX 12](/public/01-firstpost/directx12.jpg)
 
 One of the things I find that I lack a bit of knowledge about is precisely how computer graphics work, and how whatever is in the Unreal Editor (or anything else, really) is actually rendered to the screen. Earlier this month I followed a quick tutorial on constructing a raytracer that produced ppm renders of some spheres, which was fairly interesting. However, these tidbits of knowledge here and there don't paint a satisfactory picture for me.
 
