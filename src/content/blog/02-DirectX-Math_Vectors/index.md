@@ -1,12 +1,13 @@
 ---
-title: "3D Game Programming with DirectX 12: 1.6 DirectX Math Vectors"
-summary: "A summary of SIMD Instructions and XMVectors in DirectX"
+title: "3D Game Programming with DirectX 12: 1.6 DirectX Math Vectors and Matrices"
+summary: "A summary of SIMD Instructions and XMVectors/XMMatrices in DirectX"
 date: "April 28 2024"
 draft: false
 tags:
 - Graphics
 - DirectX
 - Vectors
+- Matrices
 ---
 
 In chapter 1 of **3D Game Programming with DirectX 12** by Frank Luna, there is a brief overview of some vector basics, followed by an overview of the ``DirectXMath.h`` math library. This uses the "SSE2" instruction set (Streaming SIMD Extensions 2), which introduces double-precision floating point instructions. What's important to know here is that 128-bit wide SIMD (single instruction multiple data) instructions can do things to _four_ 32-bit ``floats`` or ``ints` with _one_ instruction.
@@ -134,8 +135,114 @@ perpW                                 = (0, 0.707, 0)
 projW + perpW == w                    = true
 projW + perpW != w                    = false
 angle                                 = 90
+```
 
-1.6.8_VectorFunctions.exe (process 37748) exited with code 0.
-To automatically close the console when debugging stops, enable Tools->Options->Debugging->Automatically close the console when debugging stops.
-Press any key to close this window . . .
+We also have the `XMMATRIX` type with its own conventions. For class data members, we use `XMFLOAT4X4`. When passing a matrix as a parameter, one matrix counts as four `XMVECTOR` parameters. So, the first `XMMATRIX` is of type `FXMMATRIX`, and subsequent parameters are of type `CXMMATRIX`. DirectX Math also recommends using `CXMMATRIX` for constructoers that takes `XMMATRIX` parameters. Sample program below:
+
+```cpp
+#include <windows.h>
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <iostream>
+
+using namespace std;
+using namespace DirectX;
+using namespace DirectX::PackedVector;
+
+// overload "<<"
+ostream& XM_CALLCONV operator<<(ostream& os, FXMVECTOR v)
+{
+	XMFLOAT4 dest;
+	XMStoreFloat4(&dest, v);
+
+	os << "(" << dest.x << ", " << dest.y << ", " << dest.z << ", " << dest.w << ")";
+	return os;
+}
+
+ostream& XM_CALLCONV operator<<(ostream& os, FXMMATRIX m)
+{
+	for ( int x = 0; x < 4; ++x )
+	{
+		os << XMVectorGetX(m.r[x]) << "\t";
+		os << XMVectorGetY(m.r[x]) << "\t";
+		os << XMVectorGetZ(m.r[x]) << "\t";
+		os << XMVectorGetW(m.r[x]) << "\t";
+		os << endl;
+	}
+
+	return os;
+}
+
+int main()
+{
+	if (!XMVerifyCPUSupport())
+	{
+		cout << "directx math not supported" << endl;
+		return 0;
+	}
+
+	XMMATRIX A(1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 4.0f, 0.0f,
+		1.0f, 2.0f, 3.0f, 1.0f);
+
+	XMMATRIX B = XMMatrixIdentity();
+
+	XMMATRIX C = A * B;
+
+	XMMATRIX D = XMMatrixTranspose(A);
+
+	XMVECTOR det = XMMatrixDeterminant(A);
+	XMMATRIX E = XMMatrixInverse(&det, A);
+
+	XMMATRIX F = A * E;
+
+	cout << "A = " << endl << A << endl;
+	cout << "B = " << endl << B << endl;
+	cout << "C = A*B =" << endl << C << endl;
+	cout << "D = transpose(A) = " << endl << D << endl;
+	cout << "det = determinant(A) = " << det << endl << endl;
+	cout << "E = inverse(A)" << endl << E << endl;
+	cout << "F = A*E" << endl << F << endl;
+}
+```
+And the output:
+```
+A =
+1       0       0       0
+0       2       0       0
+0       0       4       0
+1       2       3       1
+
+B =
+1       0       0       0
+0       1       0       0
+0       0       1       0
+0       0       0       1
+
+C = A*B =
+1       0       0       0
+0       2       0       0
+0       0       4       0
+1       2       3       1
+
+D = transpose(A) =
+1       0       0       1
+0       2       0       2
+0       0       4       3
+0       0       0       1
+
+det = determinant(A) = (8, 8, 8, 8)
+
+E = inverse(A)
+1       0       0       0
+0       0.5     0       0
+0       0       0.25    0
+-1      -1      -0.75   1
+
+F = A*E
+1       0       0       0
+0       1       0       0
+0       0       1       0
+0       0       0       1
 ```
