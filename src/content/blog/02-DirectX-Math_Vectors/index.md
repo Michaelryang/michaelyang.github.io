@@ -1,5 +1,5 @@
 ---
-title: "3D Game Programming with DirectX 12: 1.6 DirectX Math Vectors and Matrices"
+title: "DirectX 12: Math Vectors and Matrices"
 summary: "A summary of SIMD Instructions and XMVectors/XMMatrices in DirectX"
 date: "April 28 2024"
 draft: false
@@ -13,6 +13,8 @@ tags:
 In chapter 1 of **3D Game Programming with DirectX 12** by Frank Luna, there is a brief overview of some vector basics, followed by an overview of the ``DirectXMath.h`` math library. This uses the "SSE2" instruction set (Streaming SIMD Extensions 2), which introduces double-precision floating point instructions. What's important to know here is that 128-bit wide SIMD (single instruction multiple data) instructions can do things to _four_ 32-bit ``floats`` or ``ints` with _one_ instruction.
 
 Naturally, this is terrific for vector calculations; for example, we can perform vector addition with one SIMD instruction instead of four scalar instructions. Note that we can just ignore coordinates if our vectors have less than 4 dimensions.
+
+Before anything else, I want to stress that what I describe below is not comprehensive, and are effectively just notes that I'm taking. If you want a thorough description of DirectX concepts, you should probably look elsewhere.
 
 ---
 

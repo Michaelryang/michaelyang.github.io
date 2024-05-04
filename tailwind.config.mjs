@@ -12,6 +12,14 @@ export default {
       typography: {
         DEFAULT: {
           css: {
+            code: {
+              '&::before': {
+                display: 'none',
+              },
+              '&::after': {
+                display: 'none',
+              },
+            },
             maxWidth: "full",
           },
         },
