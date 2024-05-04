@@ -139,7 +139,7 @@ projW + perpW != w                    = false
 angle                                 = 90
 ```
 
-We also have the `XMMATRIX` type with its own conventions. For class data members, we use `XMFLOAT4X4`. When passing a matrix as a parameter, one matrix counts as four `XMVECTOR` parameters. So, the first `XMMATRIX` is of type `FXMMATRIX`, and subsequent parameters are of type `CXMMATRIX`. DirectX Math also recommends using `CXMMATRIX` for constructoers that takes `XMMATRIX` parameters. Sample program below:
+We also have the `XMMATRIX` type with its own conventions. For class data members, we use `XMFLOAT4X4`. When passing a matrix as a parameter, one matrix counts as four `XMVECTOR` parameters. So, the first `XMMATRIX` is of type `FXMMATRIX`, and subsequent parameters are of type `CXMMATRIX`. DirectX Math also recommends using `CXMMATRIX` for constructors that takes `XMMATRIX` parameters. Sample program below:
 
 ```cpp
 #include <windows.h>
