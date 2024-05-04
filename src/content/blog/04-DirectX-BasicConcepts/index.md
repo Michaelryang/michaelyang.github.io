@@ -1,7 +1,7 @@
 ---
 title: "DirectX 12: Basic Graphics Concepts"
 summary: "Preliminary knowledge to set up your first DirectX program"
-date: "May 2 2024"
+date: "May 3 2024"
 draft: false
 tags:
 - Graphics
@@ -55,3 +55,6 @@ The GPU has a _command queue_ that the CPU submits to via _command lists_. The G
 
 ### CPU/GPU Synchronization
 To ensure that the CPU doesn't, for example, overwrite data of a resource that the GPU is currently trying to render, we can implement a _fence_ that forces the CPU to wait until the GPU is finished up to the specified fence point. A fence object maintains a UINT64 value to identify points in time.
+
+### Resource Transitions
+Resources are assigned states by DirectX to prevent resource hazards from occuring - such as the GPU reading from a resource it has not finished writing to. For example, the resource is set to a render target state when the GPU writes to it, and cannot be read from until the state changes. A resource transition is specified by an array of transition resource barriers on the command list.
