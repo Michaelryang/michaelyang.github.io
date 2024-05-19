@@ -58,3 +58,6 @@ To ensure that the CPU doesn't, for example, overwrite data of a resource that t
 
 ### Resource Transitions
 Resources are assigned states by DirectX to prevent resource hazards from occuring - such as the GPU reading from a resource it has not finished writing to. For example, the resource is set to a render target state when the GPU writes to it, and cannot be read from until the state changes. A resource transition is specified by an array of transition resource barriers on the command list.
+
+### Resource Descriptors
+Resources are not directly bound to the rendering pipeline. We instead bind the resources by specifying descriptors that can be thought as a structure that identifies and describes a resource for the GPU. By doing this we can even have multiple descriptors of one resource that interpret it in different ways.
