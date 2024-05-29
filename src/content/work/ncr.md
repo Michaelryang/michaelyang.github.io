@@ -1,8 +1,8 @@
 ---
 company: "NCR"
 role: "Software Developer (Internship)"
-dateStart: "04/01/2020"
-dateEnd: "01/01/2020"
+dateStart: "01/01/2020"
+dateEnd: "04/01/2020"
 ---
 
 - Improved usability and accessibility by developing core user interface features using **React**
