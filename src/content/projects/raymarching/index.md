@@ -42,11 +42,11 @@ Before we implement lighting, the first thing required is a cloud texture. I hav
 
 ![Perlin cube](/project-2-raymarching/3dperlin.png)
 
-It appears that 2D textures essentialy get cut up into a grid and then stacked up to become a 3D texture, explaining the streaky effect on the side. Therefore, in order to make the noise continuous in 3 dimensions, we need a 2D-tiled textuer instead. In any case, this is enough for now to begin setting up volumetric ray-marching.
+It appears that 2D textures essentially get cut up into a grid and then stacked up to become a 3D texture, explaining the streaky effect on the side. Therefore, in order to make the noise continuous in 3 dimensions, we need a 2D-tiled texture instead. In any case, this is enough for now to begin setting up volumetric ray-marching.
 
 ![Ray-marching a texture](/project-2-raymarching/figure2.png)
 
-Instead of using SDFs, what can be done is the following: between the entry and exit points of the volume, sample the density in intervals and sum it up to obtain the density through that ray. This allows the calculation of opacity - and then Unreal figures out the rest for us.
+Instead of using SDFs, wwe can do the following: between the entry and exit points of the volume, sample the density in intervals and sum it up to obtain the density through that ray. This allows the calculation of opacity - and then Unreal figures out the rest for us.
 
 ![First cloud](/project-2-raymarching/cloud1.png)
 The result was something like this. Clearly, the quality of the texture is terrible and needs to be overhauled. After many iterations, I created a 2D-tiled texture from layered Voronoi noise, with a stronger fall-off to introduce much more empty space.
