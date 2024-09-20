@@ -2,7 +2,7 @@
 title: "Project One"
 summary: "Getting the ball rolling"
 date: "April 27 2024"
-draft: false
+draft: true
 tags:
 - Raytracing
 - C++
