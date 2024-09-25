@@ -11,7 +11,7 @@ tags:
 # repoUrl: https://github.com/markhorn-dev/astro-sphere
 ---
 
-## Boids: Let's Make An Aquarium
+## Boids and Marching Cubes: Let's Make An Aquarium
 
 <div style="display: flex; justify-content: center;">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/2HqwvY6W1so?si=MLd_9JqM1p0CI_tG" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -172,9 +172,152 @@ Two important things to note:
 
 A less important third thing is that I used a SphereCast instead of a raycast to deal with issue number 1. This is probably not as robust as making the changes mentioned above, However, by inspection, I think the boids are doing good enough for me!
 
-### Next steps
-Currently the boids iterate through the entire list of boids in the level to determine their nearby neighbors, which is polynomial time. The most important optimization by far is to create a quadtree, or split up the bounds space some other way to minimize the amount of computation required to get each boid's neighbors.
+### September 25th Update
+Since default cubes and a torus don't serve as an interesting environment for our fish, I livened up the aquarium space with **Marching Cubes**. This algorithm was created in 1987 and is fairly well known. [This source](https://www.cs.carleton.edu/cs_comps/0405/shape/marching_cubes.html) provides plenty of visuals and a simple explanation of how the algorithm works. I didn't venture into smoothing or accurately predicting cube edge locations for the vertices, since my main goal was not to create super-realistic terrain.
 
-In addition, since boids calculate their headings independently of each other, this simulation is a perfect candidate for a compute shader to parallelize computation on the GPU.
+Using `FMath::PerlinNoise3D` to create a Voxel grid and then the marketplace Realtime Mesh Component to construct the mesh, I was able to generate structures like the following:
 
-Finally, a donut and cubes are hardly the most interesting obstacles for our boids. Procedurally generated terrain can be used as a much more rigorous test for our boids' obstacle avoidance and navigation. The next update to this project will likely contain all of these improvements. So until next time, thanks for reading.
+![Marching Cubes](/project-3-boids/cubesize10_extents800.png)
+
+By adjusting the threshold for whether a voxel is considered "in" the terrain, you can crudely control the density of the resulting mesh. 
+
+<div style="display: flex; justify-content: center;">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/fiC9KSPlWsI?si=RFE3BEVNF37SAnwJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+The issue where the mesh is not continuous at the edges can be resolved by simply returning a noise value of 0.0 at the outermost layer of voxels on each face. Below is the core of the code used to generate the mesh:
+
+```cpp
+void UMarchingCubesComponent::ComputeVoxelGrid()
+{
+	VGrid = FVoxelGrid(
+		int((MaxCornerWorldSpace.X - MinCornerWorldSpace.X) / CubeSize),
+		int((MaxCornerWorldSpace.Y - MinCornerWorldSpace.Y) / CubeSize),
+		int((MaxCornerWorldSpace.Z - MinCornerWorldSpace.Z) / CubeSize));
+	float NoiseSample;
+
+	for (float x = 0; x < VGrid.XResolution; ++x)
+	{
+		for (float y = 0; y < VGrid.YResolution; ++y)
+		{
+			for (float z = 0; z < VGrid.ZResolution; ++z)
+			{
+				FVector PositionWorldSpace = GetPositionFromIndices(x, y, z);
+				NoiseSample = FMath::PerlinNoise3D(PositionWorldSpace / Scale);
+
+				VGrid.Set((NoiseSample + 1.0) / 2.0, x, y, z);
+			}
+		}
+	}
+}
+```
+```cpp
+void UMarchingCubesComponent::ComputeMarchingCubes()
+{
+	TArray<TArray<FVector3f>> Triangles;
+
+	// compute triangles
+	for (float x = 0; x < VGrid.XResolution - 1; ++x)
+	{
+		for (float y = 0; y < VGrid.YResolution - 1; ++y)
+		{
+			for (float z = 0; z < VGrid.ZResolution - 1; ++z)
+			{
+				int TriangulationIndex = 0;
+
+				TArray<float> CubeData;
+
+				for (int i = 0; i < 8; ++i)
+				{
+					if (PointIsOnContinuousBoundary(CubePoints[i][0] + x, CubePoints[i][1] + y, CubePoints[i][2] + z))
+					{
+						CubeData.Add(0.0);
+					}
+					else
+					{
+						CubeData.Add(VGrid.Get(CubePoints[i][0] + x, CubePoints[i][1] + y, CubePoints[i][2] + z));
+					}
+				}
+
+				for (int i = 0; i < 8; ++i)
+				{
+					if (CubeData[i] > SurfaceLevelThreshold)
+					{
+						TriangulationIndex |= 1 << i;
+					}
+				}
+
+				int i = 0;
+				while (i < 16)
+				{
+					if (TriTable[TriangulationIndex][i] == -1)
+					{
+						break;
+					}
+					Triangles.Add(TArray<FVector3f>());
+					int TriangleEdgeIndices[3] = {
+						TriTable[TriangulationIndex][i],
+						TriTable[TriangulationIndex][i + 1],
+						TriTable[TriangulationIndex][i + 2] };
+
+					for (int j = 0; j < 3; ++j)
+					{
+						++i;
+						int IndexA = EdgeIndices[TriangleEdgeIndices[j]][0];
+						int IndexB = EdgeIndices[TriangleEdgeIndices[j]][1];
+
+						FVector3f VertexCubePosition = (CubePointVectors[IndexA] + CubePointVectors[IndexB]) / 2.0 * CubeSize;
+						FVector3f VertexLocalPosition = VertexCubePosition - ScaledBoxExtents + FVector3f(x,y,z) * CubeSize;
+						Triangles[Triangles.Num() - 1].Add(VertexLocalPosition);
+					}
+				}
+			}
+		}
+	}
+	
+	// build the mesh
+	FRealtimeMeshStreamSet StreamSet;
+	TRealtimeMeshBuilderLocal<uint32, FPackedNormal, FVector2DHalf, 1> Builder(StreamSet);
+
+	Builder.EnableTangents();
+	Builder.EnableTexCoords();
+	Builder.EnableColors();
+	Builder.EnablePolyGroups();
+
+	for (int i = 0; i < Triangles.Num(); ++i)
+	{
+		FVector3f Edge1 = Triangles[i][0] - Triangles[i][1];
+		FVector3f Edge2 = Triangles[i][0] - Triangles[i][2];
+		FVector3f Normal = FVector3f::CrossProduct(Edge2, Edge1);
+		FVector3f Tangent = Edge2;
+
+		int32 V0 = Builder.AddVertex(Triangles[i][0])
+			.SetNormalAndTangent(Normal, Tangent)
+			.SetColor(FColor::Red)
+			.SetTexCoord(FVector2f(0.0f, 0.0f));
+
+		int32 V1 = Builder.AddVertex(Triangles[i][1])
+			.SetNormalAndTangent(Normal, Tangent)
+			.SetColor(FColor::Green)
+			.SetTexCoord(FVector2f(0.5f, 1.0f));
+
+		int32 V2 = Builder.AddVertex(Triangles[i][2])
+			.SetNormalAndTangent(Normal, Tangent)
+			.SetColor(FColor::Blue)
+			.SetTexCoord(FVector2f(1.0f, 0.0f));
+
+		Builder.AddTriangle(V0, V1, V2, 0);
+	}
+
+	const FRealtimeMeshSectionGroupKey GroupKey = FRealtimeMeshSectionGroupKey::Create(0, FName("TestTriangle"));
+
+	const FRealtimeMeshSectionKey PolyGroup0SectionKey = FRealtimeMeshSectionKey::CreateForPolyGroup(GroupKey, 0);
+
+	RealtimeMesh->CreateSectionGroup(GroupKey, StreamSet);
+	RealtimeMesh->UpdateSectionConfig(PolyGroup0SectionKey, FRealtimeMeshSectionConfig(ERealtimeMeshSectionDrawType::Static, 0), true);
+}
+```
+
+Note that precomputing the voxel grid ensures much faster performance for this algorithm at the cost of a very large space requirement. For my purposes, the resolution of the mesh is not going to be humongous, so speed is king. Also, if you're wondering what the `TriTable` and `EdgeIndices` arrays looks like, examples of Marching Cubes triangulation tables can be easily found online (much better than manually re-inventing the wheel and calculating it yourself).
+
+Marching Cubes and boids both seem like very promising candidates for parallelization through compute shaders, since each individual cube/boid does not need to communicate any information with other cubes/boids. This will likely be explored, amongst other optimizations, in the next update. Until next time!
