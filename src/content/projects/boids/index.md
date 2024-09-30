@@ -12,10 +12,12 @@ tags:
 ---
 
 ## Boids and Marching Cubes: Let's Make An Aquarium
-
+C++ Source: https://github.com/Michaelryang/Boids3D/
 <div style="display: flex; justify-content: center;">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/2HqwvY6W1so?si=MLd_9JqM1p0CI_tG" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 </div>
+
+
 
 Boids is an artificial life program that was developed by Craig Reynolds in 1986. It is an example of emergent behavior, where complex behaviors come from relatively simple rules. I've always been a fan of emergent gameplay and behavior, which led to this particular investigation, among many others. In this post, I will briefly go over some of the things I worked on in this project.
 
