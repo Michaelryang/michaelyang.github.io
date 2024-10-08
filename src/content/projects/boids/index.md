@@ -1,6 +1,6 @@
 ---
-title: "Boids"
-summary: "Emergent behavior in flocking simulations"
+title: "Boids & Marching Cubes"
+summary: "A study on emergent behavior in flocking simulations with a procedural "
 date: "September 19 2024"
 draft: false
 tags:
@@ -11,7 +11,7 @@ tags:
 # repoUrl: https://github.com/markhorn-dev/astro-sphere
 ---
 
-## Boids and Marching Cubes: Let's Make An Aquarium
+## Let's Make An Aquarium!
 C++ Source: https://github.com/Michaelryang/Boids3D/
 <div style="display: flex; justify-content: center;">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/2HqwvY6W1so?si=MLd_9JqM1p0CI_tG" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -174,14 +174,14 @@ Two important things to note:
 
 A less important third thing is that I used a SphereCast instead of a raycast to deal with issue number 1. This is probably not as robust as making the changes mentioned above, However, by inspection, I think the boids are doing good enough for me!
 
-### September 25th Update
-Since default cubes and a torus don't serve as an interesting environment for our fish, I livened up the aquarium space with **Marching Cubes**. This algorithm was created in 1987 and is fairly well known. [This source](https://www.cs.carleton.edu/cs_comps/0405/shape/marching_cubes.html) provides plenty of visuals and a simple explanation of how the algorithm works. I didn't venture into smoothing or accurately predicting cube edge locations for the vertices, since my main goal was not to create super-realistic terrain.
+### September 25th Update - Marching Cubes
+Since default cubes and a torus don't serve as an interesting environment for our fish, I livened up the aquarium space with **Marching Cubes**. In contrast to a height map, Marching Cubes creates the mesh in a volume, potentially allowing caves and overhangs. This algorithm was created in 1987 and is fairly well known. [This source](https://www.cs.carleton.edu/cs_comps/0405/shape/marching_cubes.html) provides plenty of visuals and a simple explanation of how the algorithm works. I didn't venture into smoothing or accurately predicting cube edge locations for the vertices, since my main goal was not to create super-realistic terrain.
 
 Using `FMath::PerlinNoise3D` to create a Voxel grid and then the marketplace Realtime Mesh Component to construct the mesh, I was able to generate structures like the following:
 
 ![Marching Cubes](/project-3-boids/cubesize10_extents800.png)
 
-By adjusting the threshold for whether a voxel is considered "in" the terrain, you can crudely control the density of the resulting mesh. 
+Adjusting the threshold for whether a voxel is considered "in" the terrain allows crude control over the density of the resulting mesh. Finally, by adding a Marching Cubes mesh into our aquarium and adding collision detection for raycasts, our boids now swim around between the gaps in our new terrain.
 
 <div style="display: flex; justify-content: center;">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/fiC9KSPlWsI?si=RFE3BEVNF37SAnwJ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -320,6 +320,47 @@ void UMarchingCubesComponent::ComputeMarchingCubes()
 }
 ```
 
-Note that precomputing the voxel grid ensures much faster performance for this algorithm at the cost of a very large space requirement. For my purposes, the resolution of the mesh is not going to be humongous, so speed is king. Also, if you're wondering what the `TriTable` and `EdgeIndices` arrays looks like, examples of Marching Cubes triangulation tables can be easily found online (much better than manually re-inventing the wheel and calculating it yourself).
+Note that precomputing the voxel grid ensures much faster performance for this algorithm at the cost of a very large space requirement. For my purposes, the resolution of the mesh is not going to be humongous, so speed is king. If you are interested in a closer look at the whole source, you can [find it here on my Github](https://github.com/Michaelryang/Boids3D/).
 
-Marching Cubes and boids both seem like very promising candidates for parallelization through compute shaders, since each individual cube/boid does not need to communicate any information with other cubes/boids. This will likely be explored, amongst other optimizations, in the next update. Until next time!
+### October 7th Update - Multithreading and Infinite Terrain Generation
+At this point, I was interested in trying to make an infinite procedural world, but I was running into performance issues. For starters, I can't render an infinite-sized mesh. Drawing inspiration from Minecraft,  I first split the mesh into smaller chunks and only spawned/rendered chunks within a distance to the player. However, rendering 20 or so chunks in one frame in my test world would create a noticeable drop in framerate: This is because currently all calculations are done on the game thread. Using Unreal's multithreading `FRunnable` class, chunks can be assigned to threads that will do all computation asynchronously, achieving smooth real-time performance. Multiple threads are managed by an `AMarchingCubesWorld` actor.
+
+```cpp
+uint32 FWorldChunkThread::Run()
+{
+	while (!bShutdown)
+	{
+		if (!bIsComputing) // thread waits until assigned a chunk to compute
+		{
+			FPlatformProcess::Sleep(0.01);
+		}
+		else
+		{
+			// this computation used to live in UMarchingCubesComponent
+			Triangles.Empty();
+			StreamSet = FRealtimeMeshStreamSet();
+			ThreadedComputeVoxelGrid();
+			ThreadedComputeTriangles();
+			ThreadedMakeStreamSet();
+			ThreadedMakeMesh();
+
+			// once finished, the chunk is added to a queue in AMarchingCubesWorld
+			//   which will eventually assign a new chunk to this thread
+			MCWorld->AddToComputedChunkQueue(Coords, MarchingCubesComponent, ThreadIndex);
+
+			bIsComputing = false;
+		}
+		
+	}
+	return 0;
+}
+```
+
+The result can be seen here:
+<div style="display: flex; justify-content: center;">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/IK7doyhlfo8?si=nean8ulLkMfM4JIM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+The terrain itself is very terrible and boring at the moment. The next step is to improve greatly upon the generation algorithm. So, until next time!
+
+C++ Source: https://github.com/Michaelryang/Boids3D/
