@@ -1,6 +1,6 @@
 ---
 title: "Boids & Marching Cubes"
-summary: "A study on emergent behavior in flocking simulations with a procedural "
+summary: "Emergent behavior in flocking simulations and a procedurally generated mesh terrain"
 date: "September 19 2024"
 draft: false
 tags:
