@@ -71,6 +71,12 @@ export const SOCIALS: Socials = [
     TEXT: "Michael Yang",
     HREF: "https://www.linkedin.com/in/michaelryang/",
   },
+  { 
+    NAME: "itch.io",
+    ICON: "itchio",
+    TEXT: "chillhopper.itch.io",
+    HREF: "https://chillhopper.itch.io/",
+  },
   /*{ 
     NAME: "Twitter",
     ICON: "twitter-x",
