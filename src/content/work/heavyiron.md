@@ -2,7 +2,7 @@
 company: "Heavy Iron Studios"
 role: "Associate Game Programmer"
 dateStart: "07/10/2023"
-dateEnd: "08/13/2023"
+dateEnd: "08/13/2024"
 ---
 
 - Implemented a behavior system using the Utility AI model in Unreal Engine 5 with **C++** and **blueprints** to greatly improve AI
