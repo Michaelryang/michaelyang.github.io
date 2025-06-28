@@ -2,7 +2,7 @@
 company: "Heavy Iron Studios"
 role: "Associate Game Programmer"
 dateStart: "07/10/2023"
-dateEnd: "08/13/2023"
+dateEnd: "08/13/2024"
 ---
 
 - Co-developed a modular Utility AI system in C++ and Unreal Engine 5 for a WWI-era dogfighting simulator, replacing
